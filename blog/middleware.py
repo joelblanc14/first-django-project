@@ -16,11 +16,16 @@ class SimpleAuthMiddleware:
         if request.path.startswith('/admin/'):
             return self.get_response(request)
         
-        # 1. Obtener el token del header
-        token = request.headers.get('Authorization')
-
-        if not token:
-            return JsonResponse({'error': 'Falta el token'}, status=HTTPStatus.UNAUTHORIZED)
+        # Obtener el token del header (Bearer token)
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            parts = auth_header.split()
+            if len(parts) == 2 and parts[0].lower() == 'bearer':
+                token = parts[1]
+            else: 
+                return JsonResponse({'error': 'Formato de token inválido'}, status=HTTPStatus.UNAUTHORIZED)
+        else:
+            return JsonResponse({'error': 'Token no proporcionado'}, status=HTTPStatus.UNAUTHORIZED)
         
         # Validar el token
         try:
