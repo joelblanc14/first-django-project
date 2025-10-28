@@ -5,15 +5,28 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import BlogPost
 from .serializers import BlogPostSerializer
+from rest_framework.authentication import BaseAuthentication
+
+class NoAuth(BaseAuthentication):
+    def authenticate(self, request):
+        return (None, None)
 
 # Vista para listar y crear blogposts
+
 class BlogPostListCreate(APIView):
+    authentication_classes = [NoAuth]
+
     def get(self, request):
+        
         blogposts = BlogPost.objects.all()
         serializer = BlogPostSerializer(blogposts, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = BlogPostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -21,7 +34,9 @@ class BlogPostListCreate(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # Vista para obtener, actualizar y eliminar un blogpost específico
+# @method_decorator(csrf_exempt, name='dispatch')
 class BlogPostDetail(APIView):
+
     def get_object(self, post_id):
         try:
             return BlogPost.objects.get(id=post_id)
@@ -29,6 +44,7 @@ class BlogPostDetail(APIView):
             return None
 
     def get(self, request, post_id):
+
         blogpost = self.get_object(post_id)
         if not blogpost:
             return Response({'error: Blogpost not found'},status=status.HTTP_404_NOT_FOUND)
@@ -36,6 +52,10 @@ class BlogPostDetail(APIView):
         return Response(serializer.data)
     
     def put(self, request, post_id):
+
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         blogpost = self.get_object(post_id)
         if not blogpost:
             return Response ({'error': 'Blogpost not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -46,6 +66,10 @@ class BlogPostDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, post_id):
+
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
         blogpost = self.get_object(post_id)
         if not blogpost:
             return Response({'error': 'Blogpost not found'}, status=status.HTTP_404_NOT_FOUND)
