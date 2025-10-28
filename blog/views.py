@@ -5,16 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import BlogPost
 from .serializers import BlogPostSerializer
-from rest_framework.authentication import BaseAuthentication
-
-class NoAuth(BaseAuthentication):
-    def authenticate(self, request):
-        return (None, None)
 
 # Vista para listar y crear blogposts
 
 class BlogPostListCreate(APIView):
-    authentication_classes = [NoAuth]
 
     def get(self, request):
         
