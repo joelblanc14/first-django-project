@@ -27,7 +27,7 @@ class SimpleAuthMiddleware:
         
         auth_header = request.headers.get('Authorization')
 
-        if not auth_header.startswith('Bearer'):
+        if not auth_header or not auth_header.startswith('Bearer'):
             logger.warning("Authorization header missing or invalid")
             request.user = None
             return self.get_response(request)
