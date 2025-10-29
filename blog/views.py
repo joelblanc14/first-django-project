@@ -8,12 +8,14 @@ from .serializers import BlogPostSerializer
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import logging
+from .permisions import IsAuthenticatedOrReadOnly
 
 logger = logging.getLogger('blog')
 
 # Vista para listar y crear blogposts
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogPostListCreate(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         
@@ -40,6 +42,7 @@ class BlogPostListCreate(APIView):
 # Vista para obtener, actualizar y eliminar un blogpost específico
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogPostDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self, post_id):
         try:
