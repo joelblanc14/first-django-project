@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from blog.models import BlogPost
 from rest_framework import status
 
-
 @pytest.mark.django_db
 class TestIsAuthenticatedOrReadOnly:
     def setup_method(self):
