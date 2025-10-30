@@ -5,22 +5,27 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import BlogPost
 from .serializers import BlogPostSerializer
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 import logging
 from .permisions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger('blog')
 
 # Vista para listar y crear blogposts
-@method_decorator(csrf_exempt, name='dispatch')
 class BlogPostListCreate(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         
         blogposts = BlogPost.objects.all()
-        serializer = BlogPostSerializer(blogposts, many=True)
+
+        # Paginar los resultados
+        paginator = PageNumberPagination()
+        paginator.page_size = 100
+
+        paginated_blogposts = paginator.paginate_queryset(blogposts, request)
+
+        serializer = BlogPostSerializer(paginated_blogposts, many=True)
         logger.info("Blogposts retrieved successfully!")
         return Response(serializer.data)
 
@@ -40,7 +45,6 @@ class BlogPostListCreate(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # Vista para obtener, actualizar y eliminar un blogpost específico
-@method_decorator(csrf_exempt, name='dispatch')
 class BlogPostDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
