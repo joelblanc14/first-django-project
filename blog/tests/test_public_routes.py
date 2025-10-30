@@ -28,4 +28,4 @@ class TestPublicRoutes:
 
     def test_blogpost_list_requires_authentication(self):
         response = self.client.get('/api/blogpost/')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK

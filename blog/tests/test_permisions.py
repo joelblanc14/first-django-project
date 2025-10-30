@@ -20,7 +20,7 @@ class TestIsAuthenticatedOrReadOnly:
         assert response.status_code == status.HTTP_200_OK
 
     def test_unauthenticated_user_denied(self):
-        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/')
+        response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_superuser_allowed_all_methods(self):
@@ -44,6 +44,14 @@ class TestIsAuthenticatedOrReadOnly:
     
     def test_authenticated_user_denied_non_get_methods(self):
         self.client.force_authenticate(user=self.authenticated_user)
+
+        # Test GET list
+        response = self.client.get('/api/blogpost/')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Test GET 1
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/')
+        assert response.status_code == status.HTTP_200_OK
         
         # Test POST
         response = self.client.post('/api/blogpost/', {'titulo': 'New Post', 'contenido': 'New Content'})

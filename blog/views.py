@@ -8,16 +8,21 @@ from .serializers import BlogPostSerializer
 import logging
 from .permisions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from drf_spectacular.utils import extend_schema
 
 logger = logging.getLogger('blog')
 
 # Vista para listar y crear blogposts
+@method_decorator(cache_page(60*2), name='dispatch')
 class BlogPostListCreate(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @extend_schema(request=BlogPostSerializer)
     def get(self, request):
         
-        blogposts = BlogPost.objects.all()
+        blogposts = BlogPost.objects.all().order_by('id')
 
         # Paginar los resultados
         paginator = PageNumberPagination()
@@ -29,6 +34,7 @@ class BlogPostListCreate(APIView):
         logger.info("Blogposts retrieved successfully!")
         return Response(serializer.data)
 
+    @extend_schema(request=BlogPostSerializer)
     def post(self, request):
 
         if not request.user or not request.user.is_authenticated:
@@ -45,6 +51,7 @@ class BlogPostListCreate(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # Vista para obtener, actualizar y eliminar un blogpost específico
+@method_decorator(cache_page(60*2), name='dispatch')
 class BlogPostDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -64,6 +71,7 @@ class BlogPostDetail(APIView):
         logger.info(f"Blogpost with id {post_id} retrieved successfully!")
         return Response(serializer.data)
     
+    @extend_schema(request=BlogPostSerializer)
     def put(self, request, post_id):
 
         if not request.user or not request.user.is_authenticated:
