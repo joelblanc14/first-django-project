@@ -80,4 +80,3 @@ class TestIsAuthenticatedOrReadOnly:
         # Test DELETE
         response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
-

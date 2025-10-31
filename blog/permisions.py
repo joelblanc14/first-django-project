@@ -1,28 +1,19 @@
-# blog/permisions.py
-from rest_framework.permissions import BasePermission
-import logging
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-logger = logging.getLogger('blog')
-
-class IsAuthenticatedOrReadOnly(BasePermission):
+class IsOwnerOrAdmin(BasePermission):
     """
-    Permite GET a usuarios autenticados
-    Permite todo (GET, POST, PUT, DELETE) solo a superusuarios
+    Permiso que permite a superusuarios hacer cualquier cosa,
+    y a usuarios normales solo sobre sus propios objetos.
     """
 
-    def has_permission(self, request, view):
-        user = request.user
-
-        # Superusuario puede hacer todo
-        if user and user.is_superuser:
-            logger.info(f"Access granted: Superuser: {user.username}, Method: {request.method}, Path: {request.path}")
+    def has_object_permission(self, request, view, obj):
+        # Métodos seguros (GET, HEAD, OPTIONS) están permitidos para todos
+        if request.method in SAFE_METHODS:
             return True
         
-        # Usuarios autenticados solo GET
-        if request.method == 'GET' and user and user.is_authenticated:
-            logger.info(f"Access granted: User: {user.username}, Method: {request.method}, Path: {request.path}")
+        # Superusuario puede hacer cualquier cosa
+        if request.user.is_superuser:
             return True
         
-        # Los demás casos -> acceso denegado
-        logger.warning(f"Permission denied: User: {user}, Method: {request.method}, Path: {request.path}")
-        return False
+        # Usuarios normales solo pueden modificar sus propios objetos
+        return hasattr(obj, 'autor') and obj.autor == request.user
