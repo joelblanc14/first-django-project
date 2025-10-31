@@ -37,6 +37,14 @@ class TestIsAuthenticatedOrReadOnly:
         # Test PUT
         response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {'titulo': 'Updated Post', 'contenido': 'Updated Content'})
         assert response.status_code == status.HTTP_200_OK
+
+        # Test POST comment
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Test GET comments
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        assert response.status_code == status.HTTP_200_OK
         
         # Test DELETE
         response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
@@ -61,6 +69,15 @@ class TestIsAuthenticatedOrReadOnly:
         response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {'titulo': 'Updated Post', 'contenido': 'Updated Content'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
         
+        # Test POST comment
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Test GET comments
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        assert response.status_code == status.HTTP_200_OK
+
         # Test DELETE
         response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
+

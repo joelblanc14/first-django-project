@@ -11,6 +11,8 @@ from rest_framework.pagination import PageNumberPagination
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema
+from .models import Comentario
+from .serializers import ComentarioSerializer
 
 logger = logging.getLogger('blog')
 
@@ -105,3 +107,24 @@ class BlogPostDetail(APIView):
         blogpost.delete()
         logger.info(f"Blogpost with id {post_id} deleted successfully by user {request.user.username}.")
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class ComentarioListCreate(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, post_id):
+        """Listar comentarios de un blogpost específico."""
+        comentarios = Comentario.objects.filter(blog_post__id=post_id).order_by('fecha_creacion')
+        serializer = ComentarioSerializer(comentarios, many=True)
+        logger.info(f"Comments for blogpost id {post_id} retrieved successfully!")
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, post_id):
+
+        serializer = ComentarioSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(blog_post_id=post_id)
+            logger.info(f"Comment created successfully for blogpost id {post_id} by user {request.user.username}.")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        logger.error(f"Comment creation failed for blogpost id {post_id}: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
