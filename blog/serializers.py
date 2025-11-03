@@ -4,8 +4,8 @@ from .models import BlogPost, Comentario
 class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
-        fields = ['id', 'titulo', 'contenido', 'fecha_creacion']
-        read_only_fields = ['id', 'fecha_creacion']
+        fields = ['id', 'titulo', 'contenido', 'fecha_creacion', 'autor']
+        read_only_fields = ['id', 'fecha_creacion', 'autor']
 
     def validate_titulo(self, value):
         if len(value.strip()) < 5:

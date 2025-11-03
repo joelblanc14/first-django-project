@@ -9,7 +9,11 @@ class TestPublicRoutes:
     def setup_method(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='user', password='userpass')
-        self.blog_post = BlogPost.objects.create(titulo='Test Post', contenido='Test Content')
+        self.blog_post = BlogPost.objects.create(
+            titulo='Test Post', 
+            contenido='Test Content',
+            autor=self.user
+            )
 
     def test_token_route_nonexistent_user(self):
         response = self.client.post('/api/token/', {'username': 'any', 'password': 'any'})

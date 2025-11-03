@@ -20,7 +20,6 @@ logger = logging.getLogger('blog')
 # BlogPost Views
 # -----------------------------
 
-@method_decorator(cache_page(60*2), name='dispatch')
 class BlogPostListCreate(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
@@ -38,20 +37,20 @@ class BlogPostListCreate(APIView):
 
     @extend_schema(request=BlogPostSerializer)
     def post(self, request):
+        if not request.user.is_authenticated:
+            logger.warning("Unauthorized blogpost creation attempt.")
+            return Response({"detail": "Authentication required"}, status=403)
+        
         serializer = BlogPostSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # Asignar autor
-        if request.user.is_superuser and 'autor' in request.data:
-            serializer.save(autor=request.data['autor'])
-        else:
+        if serializer.is_valid(raise_exception=True):
+            # Asignar autor automáticamente
             serializer.save(autor=request.user)
+            logger.info(f"Blogpost created successfully by user {request.user.username}.")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        logger.info(f"Blogpost created successfully by user {request.user.username}.")
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        logger.error("Blogpost creation failed due to invalid data.")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-@method_decorator(cache_page(60*2), name='dispatch')
 class BlogPostDetail(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
@@ -115,6 +114,10 @@ class ComentarioListCreate(APIView):
         return Response(serializer.data)
 
     def post(self, request, post_id):
+
+        if not request.user.is_authenticated:
+            logger.warning("Unauthorized comment creation attempt.")
+            return Response({"detail": "Authentication required"}, status=403)
         serializer = ComentarioSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

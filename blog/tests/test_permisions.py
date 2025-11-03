@@ -12,7 +12,11 @@ class TestIsAuthenticatedOrReadOnly:
         self.client = APIClient()
         self.superuser = User.objects.create_superuser(username='admin', password='adminpass')
         self.authenticated_user = User.objects.create_user(username='user', password='userpass')
-        self.blog_post = BlogPost.objects.create(titulo='Test Post', contenido='Test Content')
+        self.blog_post = BlogPost.objects.create(
+            titulo='Test Post', 
+            contenido='Test Content',
+            autor=self.authenticated_user
+            )
 
     def test_authenticated_user_allowed(self):
         self.client.force_authenticate(user=self.authenticated_user)
@@ -31,26 +35,35 @@ class TestIsAuthenticatedOrReadOnly:
         assert response.status_code == status.HTTP_200_OK
         
         # Test POST
-        response = self.client.post('/api/blogpost/', {'titulo': 'New Post', 'contenido': 'New Content'})
+        response = self.client.post('/api/blogpost/', {
+            'titulo': 'New Post', 
+            'contenido': 'New Content'
+            })
         assert response.status_code == status.HTTP_201_CREATED
         
         # Test PUT
-        response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {'titulo': 'Updated Post', 'contenido': 'Updated Content'})
+        response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {
+            'titulo': 'Updated Post', 
+            'contenido': 'Updated Content'
+            })
         assert response.status_code == status.HTTP_200_OK
 
         # Test POST comment
-        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentario/', {
+            'autor': 'joel', 
+            'contenido': 'Great post!'
+            })
         assert response.status_code == status.HTTP_201_CREATED
 
         # Test GET comments
-        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentario/')
         assert response.status_code == status.HTTP_200_OK
         
         # Test DELETE
         response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
         assert response.status_code == status.HTTP_204_NO_CONTENT
     
-    def test_authenticated_user_denied_non_get_methods(self):
+    def test_authenticated_user_allowed_all_methods(self):
         self.client.force_authenticate(user=self.authenticated_user)
 
         # Test GET list
@@ -62,19 +75,66 @@ class TestIsAuthenticatedOrReadOnly:
         assert response.status_code == status.HTTP_200_OK
         
         # Test POST
-        response = self.client.post('/api/blogpost/', {'titulo': 'New Post', 'contenido': 'New Content'})
+        response = self.client.post('/api/blogpost/', {
+            'titulo': 'New Post', 
+            'contenido': 'New Content'
+            })
+        assert response.status_code == status.HTTP_201_CREATED
+        
+        # Test PUT
+        response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {
+            'titulo': 'Updated Post', 
+            'contenido': 'Updated Content'
+            })
+        assert response.status_code == status.HTTP_200_OK
+        
+        # Test POST comment
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentario/', {
+            'autor': 'joel', 
+            'contenido': 'Great post!'
+            })
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Test GET comments
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentario/')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Test DELETE
+        response = self.client.delete(f'/api/blogpost/{self.blog_post.id}/')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_unauthenticated_user_read_only(self):
+        # Test GET list
+        response = self.client.get('/api/blogpost/')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Test GET 1
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Test POST
+        response = self.client.post('/api/blogpost/', {
+            'titulo': 'New Post', 
+            'contenido': 'New Content'
+            })
         assert response.status_code == status.HTTP_403_FORBIDDEN
         
         # Test PUT
-        response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {'titulo': 'Updated Post', 'contenido': 'Updated Content'})
+        response = self.client.put(f'/api/blogpost/{self.blog_post.id}/', {
+            'titulo': 'Updated Post', 
+            'contenido': 'Updated Content'
+            })
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        
+
         # Test POST comment
-        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentario/', {
+            'autor': 'joel', 
+            'contenido': 'Great post!'
+            })
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Test GET comments
-        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentario/')
         assert response.status_code == status.HTTP_200_OK
 
         # Test DELETE
