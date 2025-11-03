@@ -10,10 +10,13 @@ class IsOwnerOrAdmin(BasePermission):
         # Métodos seguros (GET, HEAD, OPTIONS) están permitidos para todos
         if request.method in SAFE_METHODS:
             return True
-        
         # Superusuario puede hacer cualquier cosa
         if request.user.is_superuser:
             return True
-        
-        # Usuarios normales solo pueden modificar sus propios objetos
-        return hasattr(obj, 'autor') and obj.autor == request.user
+        # Para BlogPost: autor es un User
+        if hasattr(obj, 'autor') and hasattr(obj.autor, 'id'):
+            return obj.autor == request.user
+        # Para Comentario: autor es un string (username)
+        if hasattr(obj, 'autor') and isinstance(obj.autor, str):
+            return obj.autor == request.user.username
+        return False

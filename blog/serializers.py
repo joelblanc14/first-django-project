@@ -21,7 +21,7 @@ class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
         fields = ['id', 'autor', 'contenido', 'fecha_creacion']
-        read_only_fields = ['id', 'fecha_creacion', 'autor']
+        read_only_fields = ['id', 'fecha_creacion']
 
     def validate_autor(self, value):
         if len(value.strip()) < 3:

@@ -122,7 +122,7 @@ class ComentarioListCreate(APIView):
         serializer.is_valid(raise_exception=True)
 
         # Asignar autor
-        serializer.save(blog_post_id=post_id, autor=request.user)
+        serializer.save(blog_post_id=post_id, autor=request.user.username)
         logger.info(f"Comment created successfully for blogpost id {post_id} by user {request.user.username}.")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
