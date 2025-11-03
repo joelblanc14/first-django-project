@@ -39,11 +39,11 @@ class TestIsAuthenticatedOrReadOnly:
         assert response.status_code == status.HTTP_200_OK
 
         # Test POST comment
-        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentario/', {'autor': 'joel', 'contenido': 'Great post!'})
         assert response.status_code == status.HTTP_201_CREATED
 
         # Test GET comments
-        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentario/')
         assert response.status_code == status.HTTP_200_OK
         
         # Test DELETE
@@ -70,11 +70,11 @@ class TestIsAuthenticatedOrReadOnly:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         
         # Test POST comment
-        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentarios/', {'autor': 'joel', 'contenido': 'Great post!'})
+        response = self.client.post(f'/api/blogpost/{self.blog_post.id}/comentario/', {'autor': 'joel', 'contenido': 'Great post!'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Test GET comments
-        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentarios/')
+        response = self.client.get(f'/api/blogpost/{self.blog_post.id}/comentario/')
         assert response.status_code == status.HTTP_200_OK
 
         # Test DELETE
