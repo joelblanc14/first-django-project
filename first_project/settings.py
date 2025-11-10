@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from decouple import config
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +26,7 @@ SECRET_KEY = 'django-insecure-np4gkrtto^d7ke#nm4-2tzdn9_q)8lk86ouq(lb)8u*iyd9twq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG', default='True') == 'True'
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "web"]
 
 
 # Application definition
@@ -43,10 +42,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'drf_spectacular_sidecar',
-    
+    'django_prometheus',
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'blog.middleware.jwt_auth.SimpleAuthMiddleware',
     'blog.middleware.disable_csrf.DeactivateCSRFMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 ROOT_URLCONF = 'first_project.urls'

@@ -5,3 +5,5 @@ __pycache__/
 logs/
 .pytest_cache/
 .env
+s3_credentials.txt
+generate_logs.py

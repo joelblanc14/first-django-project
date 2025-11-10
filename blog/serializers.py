@@ -21,12 +21,7 @@ class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
         fields = ['id', 'autor', 'contenido', 'fecha_creacion']
-        read_only_fields = ['id', 'fecha_creacion']
-
-    def validate_autor(self, value):
-        if len(value.strip()) < 3:
-            raise serializers.ValidationError("El nombre del autor debe tener al menos 3 caracteres.")
-        return value
+        read_only_fields = ['id', 'autor', 'fecha_creacion']
     
     def validate_contenido(self, value):
         if not value:

@@ -1,17 +1,23 @@
 services:
   web:
     build: .
+    container_name: django_app
     volumes:
       - .:/app
+      - ./logs:/app/logs
     ports:
       - "8000:8000"
     env_file:
       - .env
     depends_on:
       - db
+      - loki
+    networks:
+      - monitoring
 
   db:
     image: postgres:15
+    container_name: postgres_db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -20,6 +26,114 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_PATHS_DATA=/var/lib/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:3.5.7
+    container_name: loki
+    restart: unless-stopped
+    user: "0"  # ⚙️ Ejecutar como root temporalmente (evita problemas de permisos)
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring:/mnt/config
+      - loki_data:/var/lib/loki
+    command: -config.file=/mnt/config/loki-config.yaml
+    env_file:
+      - .env
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:3.5.7
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./monitoring:/mnt/config
+      - ./logs:/app/logs
+    command: -config.file=/mnt/config/promtail-config.yaml
+    depends_on:
+      - loki
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+      - promtail_data:/var/lib/promtail
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=60s'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  promtail_data:
+
+networks:
+  monitoring:

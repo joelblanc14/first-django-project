@@ -23,3 +23,5 @@ sqlparse==0.5.3
 typing-extensions==4.15.0
 uritemplate==4.2.0
 python-decouple==3.8
+django-prometheus==2.4.1
+prometheus-client==0.23.1
