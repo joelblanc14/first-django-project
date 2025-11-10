@@ -57,7 +57,9 @@ services:
     volumes:
       - ./monitoring:/mnt/config
       - loki_data:/var/lib/loki
-    command: -config.file=/mnt/config/loki-config.yaml
+    command: 
+      - --config.file=/mnt/config/loki-config.yaml
+      - --config.expand-env=true
     env_file:
       - .env
     networks:

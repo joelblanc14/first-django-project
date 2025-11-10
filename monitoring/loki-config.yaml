@@ -25,6 +25,8 @@ storage_config:
 
 compactor:
   working_directory: /var/lib/loki/compactor
+  retention_enabled: false
+  delete_request_store: s3
 
 schema_config:
   configs:
