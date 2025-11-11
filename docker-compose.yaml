@@ -60,6 +60,7 @@ services:
     command: 
       - --config.file=/mnt/config/loki-config.yaml
       - --config.expand-env=true
+      - --target=all
     env_file:
       - .env
     networks:
@@ -72,6 +73,7 @@ services:
     volumes:
       - ./monitoring:/mnt/config
       - ./logs:/app/logs
+      - promtail_positions:/var/lib 
     command: -config.file=/mnt/config/promtail-config.yaml
     depends_on:
       - loki
@@ -136,6 +138,7 @@ volumes:
   grafana_data:
   loki_data:
   promtail_data:
+  promtail_positions:
 
 networks:
   monitoring:
