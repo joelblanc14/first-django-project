@@ -7,3 +7,4 @@ logs/
 .env
 s3_credentials.txt
 generate_logs.py
+Documentació_Promtail_Loki_Prometheus_Grafana.md
